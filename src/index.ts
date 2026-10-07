@@ -1,3 +1,6 @@
+import "dotenv/config";
+import { generateWhatsAppMessage } from "./ai";
+
 const match = {
   opponent: "Real Madrid",
   competition: "La Liga",
@@ -7,17 +10,10 @@ const match = {
   venue: "Mad Dog in the Fog",
 };
 
-const whatsappMessage = `
-Hey everyone! Barça are playing ${match.opponent} this ${match.day} ⚽🔵🔴
+async function main() {
+  const message = await generateWhatsAppMessage(match);
 
-🏆 ${match.competition}
-📅 ${match.date}
-⏰ ${match.kickoffTime}
-📍 ${match.venue}
+  console.log(message);
+}
 
-Come watch the game with SF Penya. See you there!
-
-Visca Barça! 💙❤️
-`;
-
-console.log(whatsappMessage);
+main();
