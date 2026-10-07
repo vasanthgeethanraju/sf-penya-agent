@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { generateWhatsAppMessage } from "./ai";
+import { generateMatchDayContent } from "./ai";
 
 const match = {
   opponent: "Real Madrid",
@@ -11,9 +11,19 @@ const match = {
 };
 
 async function main() {
-  const message = await generateWhatsAppMessage(match);
+  const content = await generateMatchDayContent(match);
 
-  console.log(message);
+  console.log("\nWHATSAPP\n");
+  console.log(content.whatsapp);
+
+  console.log("\nINSTAGRAM\n");
+  console.log(content.instagram);
+
+  console.log("\nEMAIL SUBJECT\n");
+  console.log(content.emailSubject);
+
+  console.log("\nEMAIL BODY\n");
+  console.log(content.emailBody);
 }
 
 main();
