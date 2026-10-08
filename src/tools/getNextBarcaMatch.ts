@@ -1,40 +1,15 @@
-import { z } from "zod";
-
-const BarcaApiResponseSchema = z.object({
-  data: z.object({
-    id: z.number(),
-    homeTeam: z.string(),
-    awayTeam: z.string(),
-    matchDate: z.string(),
-    venue: z.string(),
-    status: z.string(),
-    competition: z.string(),
-  }),
-});
+import { getNextOfficialBarcaFixture } from "../providers/barcaOfficialSchedule";
 
 export async function getNextBarcaMatch() {
-  const response = await fetch(
-    "https://api.fc-barcelona.app/api/next-match"
-  );
+  const fixture = await getNextOfficialBarcaFixture();
 
-  if (!response.ok) {
-    throw new Error(
-      `Barça API request failed: ${response.status} ${response.statusText}`
-    );
-  }
+  const isHomeGame = fixture.homeTeam === "FC Barcelona";
 
-  const rawData = await response.json();
+  const opponent = isHomeGame
+    ? fixture.awayTeam
+    : fixture.homeTeam;
 
-  const parsed = BarcaApiResponseSchema.parse(rawData);
-
-  const match = parsed.data;
-
-  const opponent =
-    match.homeTeam === "Barcelona"
-      ? match.awayTeam
-      : match.homeTeam;
-
-  const kickoff = new Date(match.matchDate);
+  const kickoff = new Date(fixture.kickoffTimestamp);
 
   const date = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Los_Angeles",
@@ -55,15 +30,13 @@ export async function getNextBarcaMatch() {
     hour12: true,
   }).format(kickoff);
 
-    const isHomeGame = match.homeTeam === "Barcelona";
-
   return {
     opponent,
-    competition: match.competition,
+    competition: fixture.competition,
     date,
     day,
     kickoffTime,
-    matchVenue: match.venue,
+    matchVenue: fixture.matchVenue,
     watchVenue: "Mad Dog in the Fog",
     isHomeGame,
   };
