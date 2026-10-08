@@ -1,59 +1,20 @@
 import "dotenv/config";
-import OpenAI from "openai";
-import { getNextBarcaMatch } from "./tools/getNextBarcaMatch";
-
-const client = new OpenAI();
-
-const tools = [
-  {
-    type: "function" as const,
-    name: "get_next_barca_match",
-    description: "Get the next FC Barcelona match details.",
-    parameters: {
-      type: "object",
-      properties: {},
-      required: [],
-      additionalProperties: false,
-    },
-    strict: true,
-  },
-];
+import { prepareNextMatchDayContent } from "./agent";
 
 async function main() {
-  const firstResponse = await client.responses.create({
-    model: "gpt-6-luna",
-    input: "What is Barcelona's next match?",
-    tools,
-  });
+  const content = await prepareNextMatchDayContent();
 
-  for (const item of firstResponse.output) {
-    if (
-      item.type === "function_call" &&
-      item.name === "get_next_barca_match"
-    ) {
-      console.log("Model requested tool:", item.name);
+  console.log("\nWHATSAPP\n");
+  console.log(content.whatsapp);
 
-      const match = await getNextBarcaMatch();
+  console.log("\nINSTAGRAM\n");
+  console.log(content.instagram);
 
-      console.log("Our tool returned:", match);
+  console.log("\nEMAIL SUBJECT\n");
+  console.log(content.emailSubject);
 
-      const finalResponse = await client.responses.create({
-        model: "gpt-6-luna",
-        previous_response_id: firstResponse.id,
-        tools,
-        input: [
-          {
-            type: "function_call_output",
-            call_id: item.call_id,
-            output: JSON.stringify(match),
-          },
-        ],
-      });
-
-      console.log("\nFINAL ANSWER\n");
-      console.log(finalResponse.output_text);
-    }
-  }
+  console.log("\nEMAIL BODY\n");
+  console.log(content.emailBody);
 }
 
 main();

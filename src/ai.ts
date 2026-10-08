@@ -13,7 +13,7 @@ type Match = {
   venue: string;
 };
 
-const MatchDayContentSchema = z.object({
+export const MatchDayContentSchema = z.object({
   whatsapp: z.string(),
   instagram: z.string(),
   emailSubject: z.string(),
