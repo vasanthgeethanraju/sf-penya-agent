@@ -6,11 +6,18 @@ import { prepareNextMatchDayContent } from "./agent";
 // import { generatePosterImage } from "./poster/generatePosterImage";
 
 async function main() {
-  const { match, content } =
-    await prepareNextMatchDayContent();
+const { match, weather, events, content } =
+  await prepareNextMatchDayContent();
 
+  
   console.log("\nMATCH\n");
   console.log(match);
+  
+  console.log("\nWEATHER\n");
+  console.log(weather);
+
+  console.log("\nEVENTS\n");
+  console.log(events);
 
   console.log("\nWHATSAPP\n");
   console.log(content.whatsapp);

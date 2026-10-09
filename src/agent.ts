@@ -52,6 +52,13 @@ Weather rules:
 - Since the watch party is indoors, normal weather usually does not need to be mentioned.
 - Weather may be worth mentioning if there is heavy rain, unusually hot or cold weather, or another condition that could affect travel to the watchVenue.
 
+Event rules:
+- Events refer to San Francisco events that may affect supporters traveling to the watchVenue.
+- Only mention an event if it is genuinely useful.
+- Do not mention events just because they exist.
+- Relevant events may be worth mentioning if they could affect traffic, parking, crowds, or transit near the watchVenue.
+- If there are no relevant events, do not mention events.
+
 Writing rules:
 - Keep the tone natural, casual, and human.
 - Do not sound corporate.
@@ -112,6 +119,7 @@ Writing rules:
       return {
         match: context.match,
         weather: context.weather,
+        events: context.events,
         content: finalResponse.output_parsed,
       };
     }

@@ -1,5 +1,7 @@
 import { getNextBarcaMatch } from "./getNextBarcaMatch";
 import { getSfWeather } from "./getSfWeather";
+import { getSfEvents } from "./getSfEvents";
+import { filterRelevantEvents } from "../events/filterRelevantEvents";
 
 function getKickoffHour(kickoffTime: string): number {
   const [time, period] = kickoffTime.split(" ");
@@ -28,8 +30,18 @@ export async function getMatchContext() {
     kickoffHour
   );
 
+  const allEvents = await getSfEvents(
+    match.date
+  );
+
+  const events = filterRelevantEvents(
+    allEvents,
+    kickoffHour
+  );
+
   return {
     match,
     weather,
+    events,
   };
 }
