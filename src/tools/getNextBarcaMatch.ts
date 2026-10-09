@@ -11,12 +11,18 @@ export async function getNextBarcaMatch() {
 
   const kickoff = new Date(fixture.kickoffTimestamp);
 
-  const date = new Intl.DateTimeFormat("en-US", {
+  const dateParts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Los_Angeles",
+    year: "numeric",
     month: "2-digit",
     day: "2-digit",
-    year: "numeric",
-  }).format(kickoff);
+  }).formatToParts(kickoff);
+
+  const year = dateParts.find((part) => part.type === "year")?.value;
+  const month = dateParts.find((part) => part.type === "month")?.value;
+  const dayOfMonth = dateParts.find((part) => part.type === "day")?.value;
+
+  const date = `${year}-${month}-${dayOfMonth}`;
 
   const day = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Los_Angeles",

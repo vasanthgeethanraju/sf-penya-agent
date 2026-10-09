@@ -1,8 +1,16 @@
 import "dotenv/config";
+
 import { prepareNextMatchDayContent } from "./agent";
+// import { buildPosterConfig } from "./poster/buildPosterConfig";
+// import { buildPosterPrompt } from "./poster/buildPosterPrompt";
+// import { generatePosterImage } from "./poster/generatePosterImage";
 
 async function main() {
-  const content = await prepareNextMatchDayContent();
+  const { match, content } =
+    await prepareNextMatchDayContent();
+
+  console.log("\nMATCH\n");
+  console.log(match);
 
   console.log("\nWHATSAPP\n");
   console.log(content.whatsapp);
@@ -15,6 +23,31 @@ async function main() {
 
   console.log("\nEMAIL BODY\n");
   console.log(content.emailBody);
+
+  // const posterConfig = buildPosterConfig(match);
+
+  // const posterPrompt = buildPosterPrompt(
+  //   match,
+  //   posterConfig
+  // );
+
+  // console.log("\nGenerating poster...");
+  // console.log(
+  //   "Players:",
+  //   posterConfig.featuredBarcelonaPlayers
+  // );
+
+  // const outputPath =
+  //   "./generated/match-day-poster.png";
+
+  // await generatePosterImage(
+  //   posterPrompt,
+  //   outputPath
+  // );
+
+  // console.log(
+  //   `Poster saved to ${outputPath}`
+  // );
 }
 
 main();

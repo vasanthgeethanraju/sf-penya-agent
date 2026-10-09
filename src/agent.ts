@@ -2,15 +2,16 @@ import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 
 import { MatchDayContentSchema } from "./ai";
-import { getNextBarcaMatch } from "./tools/getNextBarcaMatch";
+import { getMatchContext } from "./tools/getMatchContext";
 
 const client = new OpenAI();
 
 const tools = [
   {
     type: "function" as const,
-    name: "get_next_barca_match",
-    description: "Get the next FC Barcelona match details.",
+    name: "get_match_context",
+    description:
+      "Get the next FC Barcelona match details and relevant San Francisco weather.",
     parameters: {
       type: "object",
       properties: {},
@@ -32,7 +33,7 @@ export async function prepareNextMatchDayContent() {
 You are the match-day communications assistant for Penya Barcelonista San Francisco.
 
 When asked to prepare content for the next Barcelona match,
-use the available tools to get the match information.
+use the available tools to get the match information and local context.
 
 Never invent match information.
 
@@ -43,6 +44,13 @@ Important venue rules:
 - You may mention matchVenue only as match context.
 - If isHomeGame is true, you may naturally mention that Barça are playing at home.
 - If isHomeGame is false, you may mention that Barça are away.
+
+Weather rules:
+- Weather refers to San Francisco near the watchVenue.
+- Only mention weather if it is genuinely useful to supporters.
+- Do not force weather into every message.
+- Since the watch party is indoors, normal weather usually does not need to be mentioned.
+- Weather may be worth mentioning if there is heavy rain, unusually hot or cold weather, or another condition that could affect travel to the watchVenue.
 
 Writing rules:
 - Keep the tone natural, casual, and human.
@@ -64,13 +72,13 @@ Writing rules:
   for (const item of firstResponse.output) {
     if (
       item.type === "function_call" &&
-      item.name === "get_next_barca_match"
+      item.name === "get_match_context"
     ) {
       console.log("Agent chose tool:", item.name);
 
-      const match = await getNextBarcaMatch();
+      const context = await getMatchContext();
 
-      console.log("Tool returned:", match);
+      console.log("Tool returned:", context);
 
       const finalResponse = await client.responses.parse({
         model: "gpt-6-luna",
@@ -83,7 +91,7 @@ Writing rules:
           {
             type: "function_call_output",
             call_id: item.call_id,
-            output: JSON.stringify(match),
+            output: JSON.stringify(context),
           },
         ],
 
@@ -96,12 +104,20 @@ Writing rules:
       });
 
       if (!finalResponse.output_parsed) {
-        throw new Error("Agent did not generate match-day content.");
+        throw new Error(
+          "Agent did not generate match-day content."
+        );
       }
 
-      return finalResponse.output_parsed;
+      return {
+        match: context.match,
+        weather: context.weather,
+        content: finalResponse.output_parsed,
+      };
     }
   }
 
-  throw new Error("Agent did not request the Barcelona match tool.");
+  throw new Error(
+    "Agent did not request the match context tool."
+  );
 }
