@@ -1,18 +1,22 @@
 import "dotenv/config";
 
 import { prepareNextMatchDayContent } from "./agent";
-// import { buildPosterConfig } from "./poster/buildPosterConfig";
-// import { buildPosterPrompt } from "./poster/buildPosterPrompt";
-// import { generatePosterImage } from "./poster/generatePosterImage";
+import { buildPosterConfig } from "./poster/buildPosterConfig";
+import { buildPosterPrompt } from "./poster/buildPosterPrompt";
+import { generatePosterImage } from "./poster/generatePosterImage";
 
 async function main() {
-const { match, weather, events, transitAlerts, content } =
-  await prepareNextMatchDayContent();
+  const {
+    match,
+    weather,
+    events,
+    transitAlerts,
+    content,
+  } = await prepareNextMatchDayContent();
 
-  
   console.log("\nMATCH\n");
   console.log(match);
-  
+
   console.log("\nWEATHER\n");
   console.log(weather);
 
@@ -34,30 +38,47 @@ const { match, weather, events, transitAlerts, content } =
   console.log("\nEMAIL BODY\n");
   console.log(content.emailBody);
 
-  // const posterConfig = buildPosterConfig(match);
+  const shouldGeneratePoster =
+  process.env.GENERATE_POSTER === "true";
 
-  // const posterPrompt = buildPosterPrompt(
-  //   match,
-  //   posterConfig
-  // );
+  if (shouldGeneratePoster) {
+    const posterConfig = buildPosterConfig(match);
 
-  // console.log("\nGenerating poster...");
-  // console.log(
-  //   "Players:",
-  //   posterConfig.featuredBarcelonaPlayers
-  // );
+    const posterPrompt = buildPosterPrompt(
+      match,
+      posterConfig
+    );
 
-  // const outputPath =
-  //   "./generated/match-day-poster.png";
+    console.log("\nPOSTER CONFIG\n");
+    console.log(posterConfig);
 
-  // await generatePosterImage(
-  //   posterPrompt,
-  //   outputPath
-  // );
+    console.log("\nGenerating poster...");
+    console.log(
+      "Players:",
+      posterConfig.featuredBarcelonaPlayers
+    );
 
-  // console.log(
-  //   `Poster saved to ${outputPath}`
-  // );
+    const outputPath =
+      "./generated/match-day-poster.png";
+
+    await generatePosterImage(
+      posterPrompt,
+      outputPath
+    );
+
+    console.log(
+      `Poster saved to ${outputPath}`
+    );
+  } else {
+    console.log(
+      "\nPoster generation skipped."
+    );
+  }
 }
 
-main();
+main().catch((error) => {
+  console.error("\nSF Penya Agent failed:\n");
+  console.error(error);
+
+  process.exit(1);
+});

@@ -1,4 +1,4 @@
-import { getSfWeather } from "./tools/getSfWeather";
+import { getSfWeather } from "../src/tools/getSfWeather";
 
 async function main() {
   const weather = await getSfWeather(

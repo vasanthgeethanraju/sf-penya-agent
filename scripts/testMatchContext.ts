@@ -1,4 +1,4 @@
-import { getMatchContext } from "./tools/getMatchContext";
+import { getMatchContext } from "../src/tools/getMatchContext";
 
 async function main() {
   const context = await getMatchContext();
