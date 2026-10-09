@@ -2,6 +2,8 @@ import { getNextBarcaMatch } from "./getNextBarcaMatch";
 import { getSfWeather } from "./getSfWeather";
 import { getSfEvents } from "./getSfEvents";
 import { filterRelevantEvents } from "../events/filterRelevantEvents";
+import { getTransitAlerts } from "./getTransitAlerts";
+import { filterRelevantTransitAlerts } from "../transit/filterRelevantTransitAlerts";
 
 function getKickoffHour(kickoffTime: string): number {
   const [time, period] = kickoffTime.split(" ");
@@ -39,9 +41,18 @@ export async function getMatchContext() {
     kickoffHour
   );
 
+  const allTransitAlerts =
+  await getTransitAlerts();
+
+const transitAlerts =
+  filterRelevantTransitAlerts(
+    allTransitAlerts
+  );
+
   return {
     match,
     weather,
     events,
+    transitAlerts,
   };
 }

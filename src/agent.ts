@@ -59,6 +59,13 @@ Event rules:
 - Relevant events may be worth mentioning if they could affect traffic, parking, crowds, or transit near the watchVenue.
 - If there are no relevant events, do not mention events.
 
+Transit rules:
+- Transit alerts refer to Bay Area public transit issues that may affect supporters traveling to the watchVenue.
+- Only mention a transit alert if it could realistically affect travel to Mad Dog in the Fog.
+- Do not mention minor or unrelated transit alerts.
+- If there are no relevant transit alerts, do not mention transit.
+- Keep any transit warning short and practical.
+
 Writing rules:
 - Keep the tone natural, casual, and human.
 - Do not sound corporate.
@@ -120,6 +127,7 @@ Writing rules:
         match: context.match,
         weather: context.weather,
         events: context.events,
+        transitAlerts: context.transitAlerts,
         content: finalResponse.output_parsed,
       };
     }
