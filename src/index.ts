@@ -1,6 +1,9 @@
 import "dotenv/config";
 
 import { prepareNextMatchDayContent } from "./agent";
+import { createApprovalPackage } from "./approval/createApprovalPackage";
+import { buildApprovalEmail } from "./approval/buildApprovalEmail";
+import { sendApprovalEmail } from "./email/sendApprovalEmail";
 import { buildPosterConfig } from "./poster/buildPosterConfig";
 import { buildPosterPrompt } from "./poster/buildPosterPrompt";
 import { generatePosterImage } from "./poster/generatePosterImage";
@@ -39,45 +42,123 @@ async function main() {
   console.log(content.emailBody);
 
   const shouldGeneratePoster =
-  process.env.GENERATE_POSTER === "true";
+    process.env.GENERATE_POSTER === "true";
+
+  let posterPath: string | null = null;
 
   if (shouldGeneratePoster) {
-    const posterConfig = buildPosterConfig(match);
+    try {
+      const posterConfig =
+        buildPosterConfig(match);
 
-    const posterPrompt = buildPosterPrompt(
-      match,
-      posterConfig
-    );
+      const posterPrompt =
+        buildPosterPrompt(
+          match,
+          posterConfig
+        );
 
-    console.log("\nPOSTER CONFIG\n");
-    console.log(posterConfig);
+      console.log("\nPOSTER CONFIG\n");
+      console.log(posterConfig);
 
-    console.log("\nGenerating poster...");
-    console.log(
-      "Players:",
-      posterConfig.featuredBarcelonaPlayers
-    );
+      console.log("\nGenerating poster...");
+      console.log(
+        "Players:",
+        posterConfig.featuredBarcelonaPlayers
+      );
 
-    const outputPath =
-      "./generated/match-day-poster.png";
+      const generatedPosterPath =
+        "./generated/match-day-poster.png";
 
-    await generatePosterImage(
-      posterPrompt,
-      outputPath
-    );
+      await generatePosterImage(
+        posterPrompt,
+        generatedPosterPath
+      );
 
-    console.log(
-      `Poster saved to ${outputPath}`
-    );
+      posterPath = generatedPosterPath;
+
+      console.log(
+        `Poster saved to ${posterPath}`
+      );
+    } catch (error) {
+      console.error(
+        "\nPoster generation failed. Continuing without poster.\n"
+      );
+
+      console.error(error);
+
+      posterPath = null;
+    }
   } else {
     console.log(
       "\nPoster generation skipped."
     );
   }
+
+  const approvalPackage =
+    await createApprovalPackage({
+      match,
+      weather,
+      events,
+      transitAlerts,
+      content,
+      posterPath,
+    });
+
+  const approvalEmail =
+    buildApprovalEmail(
+      approvalPackage
+    );
+
+  console.log("\nAPPROVAL EMAIL\n");
+
+  console.log("Subject:");
+  console.log(
+    approvalEmail.subject
+  );
+
+  const approverEmail =
+    process.env.APPROVER_EMAIL;
+
+  if (!approverEmail) {
+    throw new Error(
+      "APPROVER_EMAIL is missing."
+    );
+  }
+
+  console.log(
+    "\nSending approval email..."
+  );
+
+  const sentEmail =
+    await sendApprovalEmail(
+      approverEmail,
+      approvalEmail.subject,
+      approvalEmail.html,
+      approvalPackage.posterPath
+    );
+
+  console.log(
+    "Approval email sent:",
+    sentEmail
+  );
+
+  console.log(
+    "\nApproval package saved:"
+  );
+
+  console.log({
+    id: approvalPackage.id,
+    status: approvalPackage.status,
+    posterPath:
+      approvalPackage.posterPath,
+  });
 }
 
 main().catch((error) => {
-  console.error("\nSF Penya Agent failed:\n");
+  console.error(
+    "\nSF Penya Agent failed:\n"
+  );
+
   console.error(error);
 
   process.exit(1);

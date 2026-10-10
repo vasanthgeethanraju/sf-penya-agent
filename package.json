@@ -19,13 +19,17 @@
   },
   "homepage": "https://github.com/vasanthgeethanraju/sf-penya-agent#readme",
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "^26.6.4",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@google-cloud/local-auth": "^2.1.0",
     "cheerio": "^1.2.0",
     "dotenv": "^18.0.6",
+    "express": "^5.3.0",
+    "googleapis": "^105.0.0",
     "openai": "^7.30.0",
     "zod": "^4.6.5"
   }
