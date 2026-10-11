@@ -13,10 +13,9 @@ const app = express();
 
 const PORT = 3000;
 
-async function updateApprovalStatus(
-  id: string,
-  status: ApprovalStatus
-) {
+async function loadApprovalPackage(
+  id: string
+): Promise<ApprovalPackage> {
   const filePath = path.join(
     process.cwd(),
     "data",
@@ -29,10 +28,18 @@ async function updateApprovalStatus(
     "utf-8"
   );
 
-  const approvalPackage =
-    JSON.parse(file) as ApprovalPackage;
+  return JSON.parse(file) as ApprovalPackage;
+}
 
-  approvalPackage.status = status;
+async function saveApprovalPackage(
+  approvalPackage: ApprovalPackage
+) {
+  const filePath = path.join(
+    process.cwd(),
+    "data",
+    "approvals",
+    `${approvalPackage.id}.json`
+  );
 
   await fs.writeFile(
     filePath,
@@ -43,8 +50,64 @@ async function updateApprovalStatus(
     ),
     "utf-8"
   );
+}
+
+async function updateApprovalStatus(
+  id: string,
+  status: ApprovalStatus
+) {
+  const approvalPackage =
+    await loadApprovalPackage(id);
+
+  if (approvalPackage.status !== "pending") {
+    throw new Error(
+      `Approval package is already ${approvalPackage.status}.`
+    );
+  }
+
+  approvalPackage.status = status;
+
+  await saveApprovalPackage(
+    approvalPackage
+  );
 
   return approvalPackage;
+}
+
+function renderPage(
+  title: string,
+  message: string
+) {
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <title>${title}</title>
+      </head>
+
+      <body
+        style="
+          font-family: Arial, sans-serif;
+          max-width: 600px;
+          margin: 80px auto;
+          padding: 20px;
+          text-align: center;
+        "
+      >
+        <h1>${title}</h1>
+
+        <p
+          style="
+            font-size: 18px;
+            line-height: 1.5;
+          "
+        >
+          ${message}
+        </p>
+      </body>
+    </html>
+  `;
 }
 
 app.get("/approve/:id", async (req, res) => {
@@ -55,18 +118,22 @@ app.get("/approve/:id", async (req, res) => {
         "approved"
       );
 
-    res.send(`
-      <h1>Approved ✅</h1>
-      <p>
-        Barça vs ${approvalPackage.match.opponent}
-        has been approved.
-      </p>
-    `);
+    res.send(
+      renderPage(
+        "Approved",
+        `Barça vs ${approvalPackage.match.opponent} has been approved.`
+      )
+    );
   } catch (error) {
     console.error(error);
 
-    res.status(500).send(
-      "Could not approve this match package."
+    res.status(400).send(
+      renderPage(
+        "Could not approve",
+        error instanceof Error
+          ? error.message
+          : "Unknown error"
+      )
     );
   }
 });
@@ -79,18 +146,22 @@ app.get("/reject/:id", async (req, res) => {
         "rejected"
       );
 
-    res.send(`
-      <h1>Rejected ❌</h1>
-      <p>
-        Barça vs ${approvalPackage.match.opponent}
-        has been rejected.
-      </p>
-    `);
+    res.send(
+      renderPage(
+        "Rejected",
+        `Barça vs ${approvalPackage.match.opponent} has been rejected.`
+      )
+    );
   } catch (error) {
     console.error(error);
 
-    res.status(500).send(
-      "Could not reject this match package."
+    res.status(400).send(
+      renderPage(
+        "Could not reject",
+        error instanceof Error
+          ? error.message
+          : "Unknown error"
+      )
     );
   }
 });
