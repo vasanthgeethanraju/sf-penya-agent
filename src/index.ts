@@ -9,6 +9,8 @@ import { buildPosterPrompt } from "./poster/buildPosterPrompt";
 import { generatePosterImage } from "./poster/generatePosterImage";
 
 async function main() {
+  console.log("\nPreparing SF Penya match-day package...");
+
   const {
     match,
     weather,
@@ -17,29 +19,11 @@ async function main() {
     content,
   } = await prepareNextMatchDayContent();
 
-  console.log("\nMATCH\n");
-  console.log(match);
+  console.log(
+    `Context loaded: Barça vs ${match.opponent}, ${match.day} at ${match.kickoffTime}`
+  );
 
-  console.log("\nWEATHER\n");
-  console.log(weather);
-
-  console.log("\nEVENTS\n");
-  console.log(events);
-
-  console.log("\nTRANSIT ALERTS\n");
-  console.log(transitAlerts);
-
-  console.log("\nWHATSAPP\n");
-  console.log(content.whatsapp);
-
-  console.log("\nINSTAGRAM\n");
-  console.log(content.instagram);
-
-  console.log("\nEMAIL SUBJECT\n");
-  console.log(content.emailSubject);
-
-  console.log("\nEMAIL BODY\n");
-  console.log(content.emailBody);
+  console.log("Match-day content generated.");
 
   const shouldGeneratePoster =
     process.env.GENERATE_POSTER === "true";
@@ -48,6 +32,8 @@ async function main() {
 
   if (shouldGeneratePoster) {
     try {
+      console.log("Generating poster...");
+
       const posterConfig =
         buildPosterConfig(match);
 
@@ -56,15 +42,6 @@ async function main() {
           match,
           posterConfig
         );
-
-      console.log("\nPOSTER CONFIG\n");
-      console.log(posterConfig);
-
-      console.log("\nGenerating poster...");
-      console.log(
-        "Players:",
-        posterConfig.featuredBarcelonaPlayers
-      );
 
       const generatedPosterPath =
         "./generated/match-day-poster.png";
@@ -77,11 +54,11 @@ async function main() {
       posterPath = generatedPosterPath;
 
       console.log(
-        `Poster saved to ${posterPath}`
+        `Poster generated: ${posterPath}`
       );
     } catch (error) {
       console.error(
-        "\nPoster generation failed. Continuing without poster.\n"
+        "Poster generation failed. Continuing without poster."
       );
 
       console.error(error);
@@ -89,9 +66,7 @@ async function main() {
       posterPath = null;
     }
   } else {
-    console.log(
-      "\nPoster generation skipped."
-    );
+    console.log("Poster generation skipped.");
   }
 
   const approvalPackage =
@@ -104,17 +79,14 @@ async function main() {
       posterPath,
     });
 
+  console.log(
+    `Approval package created: ${approvalPackage.id}`
+  );
+
   const approvalEmail =
     buildApprovalEmail(
       approvalPackage
     );
-
-  console.log("\nAPPROVAL EMAIL\n");
-
-  console.log("Subject:");
-  console.log(
-    approvalEmail.subject
-  );
 
   const approverEmail =
     process.env.APPROVER_EMAIL;
@@ -125,9 +97,7 @@ async function main() {
     );
   }
 
-  console.log(
-    "\nSending approval email..."
-  );
+  console.log("Sending approval email...");
 
   const sentEmail =
     await sendApprovalEmail(
@@ -138,25 +108,22 @@ async function main() {
     );
 
   console.log(
-    "Approval email sent:",
-    sentEmail
+    `Approval email sent. Gmail message ID: ${sentEmail.messageId}`
   );
 
-  console.log(
-    "\nApproval package saved:"
-  );
+  console.log("\nMatch-day package ready for approval.");
 
   console.log({
-    id: approvalPackage.id,
+    approvalId: approvalPackage.id,
     status: approvalPackage.status,
-    posterPath:
-      approvalPackage.posterPath,
+    posterIncluded:
+      approvalPackage.posterPath !== null,
   });
 }
 
 main().catch((error) => {
   console.error(
-    "\nSF Penya Agent failed:\n"
+    "\nSF Penya Agent failed:"
   );
 
   console.error(error);

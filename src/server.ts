@@ -9,6 +9,8 @@ import type {
   ApprovalStatus,
 } from "./approval/approvalTypes";
 
+import { publishSandboxPackage } from "./sandbox/publishSandboxPackage";
+
 const app = express();
 
 const PORT = 3000;
@@ -118,10 +120,21 @@ app.get("/approve/:id", async (req, res) => {
         "approved"
       );
 
+    await publishSandboxPackage(
+      approvalPackage
+    );
+
     res.send(
       renderPage(
         "Approved",
-        `Barça vs ${approvalPackage.match.opponent} has been approved.`
+        `
+          Barça vs ${approvalPackage.match.opponent}
+          has been approved.
+
+          <br><br>
+
+          Sandbox publishing completed successfully.
+        `
       )
     );
   } catch (error) {
