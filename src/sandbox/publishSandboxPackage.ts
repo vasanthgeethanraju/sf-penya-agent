@@ -6,7 +6,9 @@ import type {
   ChannelExecutionResult,
   SandboxExecution,
 } from "./sandboxTypes";
+
 import { publishSandboxEmail } from "./publishSandboxEmail";
+import { publishSandboxInstagram } from "./publishSandboxInstagram";
 
 function successResult(): ChannelExecutionResult {
   return {
@@ -45,41 +47,63 @@ export async function publishSandboxPackage(
   let email: ChannelExecutionResult;
   let whatsapp: ChannelExecutionResult;
 
+  // Instagram
   try {
     console.log(
-      "Sandbox Instagram publish..."
+      "Publishing sandbox Instagram post..."
     );
 
-    // Future real Instagram API call goes here.
+    if (!approvalPackage.posterPath) {
+      throw new Error(
+        "No poster is available for Instagram publishing."
+      );
+    }
+
+    const result =
+      await publishSandboxInstagram({
+        posterPath: approvalPackage.posterPath,
+        caption:
+          approvalPackage.content.instagram,
+      });
+
+    console.log(
+      `Sandbox Instagram published. Media ID: ${result.mediaId}`
+    );
 
     instagram = successResult();
   } catch (error) {
+    console.error(
+      "Sandbox Instagram failed."
+    );
+
     instagram = failedResult(error);
   }
 
+  // Email
   try {
-  console.log(
-    "Publishing sandbox email..."
-  );
-
-  const result =
-    await publishSandboxEmail(
-      approvalPackage
+    console.log(
+      "Publishing sandbox email..."
     );
 
-  console.log(
-    `Sandbox email sent to: ${result.recipients.join(", ")}`
-  );
+    const result =
+      await publishSandboxEmail(
+        approvalPackage
+      );
 
-  email = successResult();
-} catch (error) {
-  console.error(
-    "Sandbox email failed."
-  );
+    console.log(
+      `Sandbox email sent to: ${result.recipients.join(", ")}`
+    );
 
-  email = failedResult(error);
-}
+    email = successResult();
+  } catch (error) {
+    console.error(
+      "Sandbox email failed."
+    );
 
+    email = failedResult(error);
+  }
+
+  // WhatsApp
   try {
     console.log(
       "Sandbox WhatsApp publish..."
