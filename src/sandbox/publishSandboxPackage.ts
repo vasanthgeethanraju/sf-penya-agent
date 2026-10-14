@@ -6,6 +6,7 @@ import type {
   ChannelExecutionResult,
   SandboxExecution,
 } from "./sandboxTypes";
+import { publishSandboxEmail } from "./publishSandboxEmail";
 
 function successResult(): ChannelExecutionResult {
   return {
@@ -57,16 +58,27 @@ export async function publishSandboxPackage(
   }
 
   try {
-    console.log(
-      "Sandbox email publish..."
+  console.log(
+    "Publishing sandbox email..."
+  );
+
+  const result =
+    await publishSandboxEmail(
+      approvalPackage
     );
 
-    // Future real member email send goes here.
+  console.log(
+    `Sandbox email sent to: ${result.recipients.join(", ")}`
+  );
 
-    email = successResult();
-  } catch (error) {
-    email = failedResult(error);
-  }
+  email = successResult();
+} catch (error) {
+  console.error(
+    "Sandbox email failed."
+  );
+
+  email = failedResult(error);
+}
 
   try {
     console.log(
