@@ -29,10 +29,16 @@ Penya Barcelonista San Francisco logo.
 Preserve the logo design accurately.
 Do not redesign, replace, or invent a different Penya logo.
 
+Design the poster for a 4:5 vertical Instagram feed post.
+
+Keep all important content comfortably inside the frame.
+Do not place logos, players, date, kickoff time, venue,
+address, or other important text too close to the top or bottom edges.
+
 ${prompt}
 `,
 
-    size: "1024x1536",
+    size: "1024x1280",
     quality: "medium",
     output_format: "png",
   });
