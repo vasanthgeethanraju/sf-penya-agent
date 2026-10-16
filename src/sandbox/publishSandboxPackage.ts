@@ -9,6 +9,7 @@ import type {
 
 import { publishSandboxEmail } from "./publishSandboxEmail";
 import { publishSandboxInstagram } from "./publishSandboxInstagram";
+import { publishSandboxWhatsApp } from "./publishSandboxWhatsApp";
 
 function successResult(): ChannelExecutionResult {
   return {
@@ -109,7 +110,14 @@ export async function publishSandboxPackage(
       "Sandbox WhatsApp publish..."
     );
 
-    // Future real WhatsApp action goes here.
+    const result =
+  await publishSandboxWhatsApp(
+    approvalPackage.content.whatsapp
+  );
+
+console.log(
+  `Sandbox WhatsApp sent. Message ID: ${result.messageId}`
+);
 
     whatsapp = successResult();
   } catch (error) {
