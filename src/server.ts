@@ -1,65 +1,35 @@
 import "dotenv/config";
 
 import express from "express";
-import fs from "node:fs/promises";
-import path from "node:path";
 
 import type {
   ApprovalPackage,
   ApprovalStatus,
 } from "./approval/approvalTypes";
 
+import {
+  loadApprovalPackage,
+  saveApprovalPackage,
+} from "./storage/approvalStorage";
+
 import { publishSandboxPackage } from "./sandbox/publishSandboxPackage";
 
 const app = express();
 
-const PORT = 3000;
-
-async function loadApprovalPackage(
-  id: string
-): Promise<ApprovalPackage> {
-  const filePath = path.join(
-    process.cwd(),
-    "data",
-    "approvals",
-    `${id}.json`
-  );
-
-  const file = await fs.readFile(
-    filePath,
-    "utf-8"
-  );
-
-  return JSON.parse(file) as ApprovalPackage;
-}
-
-async function saveApprovalPackage(
-  approvalPackage: ApprovalPackage
-) {
-  const filePath = path.join(
-    process.cwd(),
-    "data",
-    "approvals",
-    `${approvalPackage.id}.json`
-  );
-
-  await fs.writeFile(
-    filePath,
-    JSON.stringify(
-      approvalPackage,
-      null,
-      2
-    ),
-    "utf-8"
-  );
-}
+const PORT = Number(process.env.PORT ?? 3000);
 
 async function updateApprovalStatus(
   id: string,
   status: ApprovalStatus
-) {
+): Promise<ApprovalPackage> {
   const approvalPackage =
     await loadApprovalPackage(id);
+
+  if (!approvalPackage) {
+    throw new Error(
+      "Approval package not found."
+    );
+  }
 
   if (approvalPackage.status !== "pending") {
     throw new Error(
@@ -179,8 +149,8 @@ app.get("/reject/:id", async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(
-    `Approval server running at http://localhost:${PORT}`
+    `Approval server running on port ${PORT}`
   );
 });

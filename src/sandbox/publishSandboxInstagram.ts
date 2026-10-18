@@ -1,7 +1,5 @@
-import { uploadPoster } from "../storage/uploadPoster";
-
 type PublishSandboxInstagramInput = {
-  posterPath: string;
+  posterUrl: string;
   caption: string;
 };
 
@@ -27,8 +25,14 @@ async function waitForMediaReady(
     const data = await response.json();
 
     if (!response.ok) {
-      console.error("Instagram status check error:", data);
-      throw new Error("Failed to check Instagram media status");
+      console.error(
+        "Instagram status check error:",
+        data
+      );
+
+      throw new Error(
+        "Failed to check Instagram media status"
+      );
     }
 
     console.log(
@@ -41,7 +45,9 @@ async function waitForMediaReady(
     }
 
     if (data.status_code === "ERROR") {
-      throw new Error("Instagram failed to process the media");
+      throw new Error(
+        "Instagram failed to process the media"
+      );
     }
 
     await new Promise((resolve) => {
@@ -57,7 +63,9 @@ async function waitForMediaReady(
 export async function publishSandboxInstagram(
   input: PublishSandboxInstagramInput
 ): Promise<PublishSandboxInstagramResult> {
-  const accessToken = process.env.INSTAGRAM_SANDBOX_ACCESS_TOKEN;
+  const accessToken =
+    process.env.INSTAGRAM_SANDBOX_ACCESS_TOKEN;
+
   const instagramAccountId =
     process.env.INSTAGRAM_SANDBOX_ACCOUNT_ID;
 
@@ -73,30 +81,35 @@ export async function publishSandboxInstagram(
     );
   }
 
-  // 1. Upload poster to Cloudflare R2
-  const imageUrl = await uploadPoster(input.posterPath);
+  const imageUrl = input.posterUrl;
 
-  console.log("Instagram poster URL:", imageUrl);
+  console.log(
+    "Instagram poster URL:",
+    imageUrl
+  );
 
-  // 2. Create Instagram media container
-  const createParams = new URLSearchParams({
-    image_url: imageUrl,
-    caption: input.caption,
-    access_token: accessToken,
-  });
+  // 1. Create Instagram media container
+  const createParams =
+    new URLSearchParams({
+      image_url: imageUrl,
+      caption: input.caption,
+      access_token: accessToken,
+    });
 
   const createResponse = await fetch(
     `https://graph.instagram.com/${instagramAccountId}/media`,
     {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type":
+          "application/x-www-form-urlencoded",
       },
       body: createParams,
     }
   );
 
-  const createData = await createResponse.json();
+  const createData =
+    await createResponse.json();
 
   if (!createResponse.ok) {
     console.error(
@@ -117,32 +130,38 @@ export async function publishSandboxInstagram(
     );
   }
 
-  console.log("Instagram creation ID:", creationId);
+  console.log(
+    "Instagram creation ID:",
+    creationId
+  );
 
-  // 3. Wait until Instagram finishes processing the image
+  // 2. Wait until Instagram finishes processing the image
   await waitForMediaReady(
     creationId,
     accessToken
   );
 
-  // 4. Publish the media container
-  const publishParams = new URLSearchParams({
-    creation_id: creationId,
-    access_token: accessToken,
-  });
+  // 3. Publish the media container
+  const publishParams =
+    new URLSearchParams({
+      creation_id: creationId,
+      access_token: accessToken,
+    });
 
   const publishResponse = await fetch(
     `https://graph.instagram.com/${instagramAccountId}/media_publish`,
     {
       method: "POST",
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type":
+          "application/x-www-form-urlencoded",
       },
       body: publishParams,
     }
   );
 
-  const publishData = await publishResponse.json();
+  const publishData =
+    await publishResponse.json();
 
   if (!publishResponse.ok) {
     console.error(

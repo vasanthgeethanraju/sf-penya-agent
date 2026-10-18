@@ -38,6 +38,7 @@ export type ApprovalPackage = {
   content: MatchDayContent;
 
   posterPath: string | null;
+  posterUrl: string | null;
 
   notes: string[];
 };

@@ -1,92 +1,42 @@
-import fs from "node:fs/promises";
-import path from "node:path";
-
-import { authenticate } from "@google-cloud/local-auth";
 import { google } from "googleapis";
 import type { OAuth2Client } from "google-auth-library";
 
-const SCOPES = [
-  "https://www.googleapis.com/auth/gmail.send",
-];
+export async function getGmailAuth(): Promise<OAuth2Client> {
+  const clientId =
+    process.env.GMAIL_CLIENT_ID;
 
-const TOKEN_PATH = path.join(
-  process.cwd(),
-  "token.json"
-);
+  const clientSecret =
+    process.env.GMAIL_CLIENT_SECRET;
 
-const CREDENTIALS_PATH = path.join(
-  process.cwd(),
-  "credentials.json"
-);
+  const refreshToken =
+    process.env.GMAIL_REFRESH_TOKEN;
 
-async function loadSavedCredentials():
-  Promise<OAuth2Client | null> {
-  try {
-    const tokenContent = await fs.readFile(
-      TOKEN_PATH,
-      "utf-8"
+  if (!clientId) {
+    throw new Error(
+      "Missing GMAIL_CLIENT_ID"
     );
-
-    const credentialsContent =
-      await fs.readFile(
-        CREDENTIALS_PATH,
-        "utf-8"
-      );
-
-    const token = JSON.parse(tokenContent);
-    const credentials =
-      JSON.parse(credentialsContent);
-
-    const key =
-      credentials.installed ??
-      credentials.web;
-
-    const client = new google.auth.OAuth2(
-      key.client_id,
-      key.client_secret,
-      key.redirect_uris?.[0]
-    );
-
-    client.setCredentials(token);
-
-    return client;
-  } catch {
-    return null;
-  }
-}
-
-async function saveCredentials(
-  client: OAuth2Client
-) {
-  await fs.writeFile(
-    TOKEN_PATH,
-    JSON.stringify(
-      client.credentials,
-      null,
-      2
-    ),
-    "utf-8"
-  );
-}
-
-export async function getGmailAuth():
-  Promise<OAuth2Client> {
-  const savedClient =
-    await loadSavedCredentials();
-
-  if (savedClient) {
-    return savedClient;
   }
 
-  const authenticatedClient =
-    await authenticate({
-      scopes: SCOPES,
-      keyfilePath: CREDENTIALS_PATH,
-    });
+  if (!clientSecret) {
+    throw new Error(
+      "Missing GMAIL_CLIENT_SECRET"
+    );
+  }
 
-  await saveCredentials(
-    authenticatedClient
+  if (!refreshToken) {
+    throw new Error(
+      "Missing GMAIL_REFRESH_TOKEN"
+    );
+  }
+
+  const client = new google.auth.OAuth2(
+    clientId,
+    clientSecret
   );
 
-  return authenticatedClient;
+  client.setCredentials({
+    refresh_token: refreshToken,
+  });
+
+  return client;
 }

@@ -2,8 +2,16 @@ import "dotenv/config";
 import { publishSandboxInstagram } from "../src/sandbox/publishSandboxInstagram";
 
 async function main() {
+  const posterUrl = process.env.INSTAGRAM_TEST_POSTER_URL;
+
+  if (!posterUrl) {
+    throw new Error(
+      "Missing INSTAGRAM_TEST_POSTER_URL"
+    );
+  }
+
   const result = await publishSandboxInstagram({
-    posterPath: "./generated/match-day-poster.png",
+    posterUrl,
     caption:
       "SF Penya Agent sandbox test ⚽️🔵🔴\n\nAutomated test post.",
   });

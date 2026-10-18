@@ -7,6 +7,8 @@ import type { MatchInfo } from "../types";
 import type { MatchDayContent } from "../schemas/matchDayContentSchema";
 import type { TransitAlert } from "../tools/getTransitAlerts";
 
+import { saveApprovalPackage } from "../storage/approvalStorage";
+
 type CreateApprovalPackageInput = {
   match: MatchInfo;
 
@@ -24,6 +26,7 @@ type CreateApprovalPackageInput = {
   content: MatchDayContent;
 
   posterPath?: string | null;
+  posterUrl?: string | null;
 };
 
 export async function createApprovalPackage(
@@ -42,10 +45,12 @@ export async function createApprovalPackage(
     content: input.content,
 
     posterPath: input.posterPath ?? null,
+    posterUrl: input.posterUrl ?? null,
 
     notes: [],
   };
 
+  // Save locally for now as a fallback
   const approvalsDirectory = path.join(
     process.cwd(),
     "data",
@@ -65,6 +70,17 @@ export async function createApprovalPackage(
     filePath,
     JSON.stringify(approvalPackage, null, 2),
     "utf-8"
+  );
+
+  console.log(
+    `Approval package saved locally: ${approvalPackage.id}`
+  );
+
+  // Save to private Cloudflare R2
+  await saveApprovalPackage(approvalPackage);
+
+  console.log(
+    `Approval package saved to R2: ${approvalPackage.id}`
   );
 
   return approvalPackage;

@@ -7,6 +7,7 @@ import { sendApprovalEmail } from "./email/sendApprovalEmail";
 import { buildPosterConfig } from "./poster/buildPosterConfig";
 import { buildPosterPrompt } from "./poster/buildPosterPrompt";
 import { generatePosterImage } from "./poster/generatePosterImage";
+import { uploadPoster } from "./storage/uploadPoster";
 
 async function main() {
   console.log("\nPreparing SF Penya match-day package...");
@@ -29,6 +30,7 @@ async function main() {
     process.env.GENERATE_POSTER === "true";
 
   let posterPath: string | null = null;
+  let posterUrl: string | null = null;
 
   if (shouldGeneratePoster) {
     try {
@@ -56,14 +58,26 @@ async function main() {
       console.log(
         `Poster generated: ${posterPath}`
       );
+
+      console.log(
+        "Uploading poster to Cloudflare R2..."
+      );
+
+      posterUrl =
+        await uploadPoster(posterPath);
+
+      console.log(
+        `Poster uploaded: ${posterUrl}`
+      );
     } catch (error) {
       console.error(
-        "Poster generation failed. Continuing without poster."
+        "Poster generation/upload failed. Continuing without poster."
       );
 
       console.error(error);
 
       posterPath = null;
+      posterUrl = null;
     }
   } else {
     console.log("Poster generation skipped.");
@@ -77,6 +91,7 @@ async function main() {
       transitAlerts,
       content,
       posterPath,
+      posterUrl,
     });
 
   console.log(
@@ -111,13 +126,17 @@ async function main() {
     `Approval email sent. Gmail message ID: ${sentEmail.messageId}`
   );
 
-  console.log("\nMatch-day package ready for approval.");
+  console.log(
+    "\nMatch-day package ready for approval."
+  );
 
   console.log({
     approvalId: approvalPackage.id,
     status: approvalPackage.status,
     posterIncluded:
       approvalPackage.posterPath !== null,
+    posterUrl:
+      approvalPackage.posterUrl,
   });
 }
 

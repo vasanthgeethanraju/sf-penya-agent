@@ -54,18 +54,18 @@ export async function publishSandboxPackage(
       "Publishing sandbox Instagram post..."
     );
 
-    if (!approvalPackage.posterPath) {
-      throw new Error(
-        "No poster is available for Instagram publishing."
-      );
-    }
+if (!approvalPackage.posterUrl) {
+  throw new Error(
+    "No poster URL is available for Instagram publishing."
+  );
+}
 
-    const result =
-      await publishSandboxInstagram({
-        posterPath: approvalPackage.posterPath,
-        caption:
-          approvalPackage.content.instagram,
-      });
+const result =
+  await publishSandboxInstagram({
+    posterUrl: approvalPackage.posterUrl,
+    caption:
+      approvalPackage.content.instagram,
+  });
 
     console.log(
       `Sandbox Instagram published. Media ID: ${result.mediaId}`
