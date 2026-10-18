@@ -82,6 +82,15 @@ function renderPage(
   `;
 }
 
+app.get("/", (_req, res) => {
+  res.send(
+    renderPage(
+      "SF Penya Agent",
+      "Approval server is running."
+    )
+  );
+});
+
 app.get("/approve/:id", async (req, res) => {
   try {
     const approvalPackage =
