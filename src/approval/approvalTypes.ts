@@ -9,6 +9,13 @@ export type ApprovalStatus =
   | "published"
   | "failed";
 
+export type PublishingStatus =
+  | "not_started"
+  | "publishing"
+  | "published"
+  | "partially_failed"
+  | "failed";
+
 export type WeatherContext = {
   time: string;
   temperature: number;
@@ -19,20 +26,25 @@ export type WeatherContext = {
 export type EventContext = {
   id: string;
   name: string;
-  date: string | null;
-  time: string | null;
-  venue: string | null;
-  city: string | null;
+  date: string;
+  time: string;
+  venue: string;
+  city: string;
 };
 
 export type ApprovalPackage = {
   id: string;
   createdAt: string;
+
   status: ApprovalStatus;
+  publishingStatus: PublishingStatus;
 
   match: MatchInfo;
+
   weather: WeatherContext | null;
+
   events: EventContext[];
+
   transitAlerts: TransitAlert[];
 
   content: MatchDayContent;

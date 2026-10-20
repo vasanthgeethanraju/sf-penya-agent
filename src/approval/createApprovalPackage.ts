@@ -35,7 +35,9 @@ export async function createApprovalPackage(
   const approvalPackage: ApprovalPackage = {
     id: randomUUID(),
     createdAt: new Date().toISOString(),
+
     status: "pending",
+    publishingStatus: "not_started",
 
     match: input.match,
     weather: input.weather,
@@ -50,7 +52,7 @@ export async function createApprovalPackage(
     notes: [],
   };
 
-  // Save locally for now as a fallback
+  // Local copy for development/fallback
   const approvalsDirectory = path.join(
     process.cwd(),
     "data",
@@ -76,8 +78,10 @@ export async function createApprovalPackage(
     `Approval package saved locally: ${approvalPackage.id}`
   );
 
-  // Save to private Cloudflare R2
-  await saveApprovalPackage(approvalPackage);
+  // Cloud copy used by the hosted approval server
+  await saveApprovalPackage(
+    approvalPackage
+  );
 
   console.log(
     `Approval package saved to R2: ${approvalPackage.id}`

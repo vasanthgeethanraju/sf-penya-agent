@@ -5,6 +5,7 @@ import express from "express";
 import type {
   ApprovalPackage,
   ApprovalStatus,
+  PublishingStatus,
 } from "./approval/approvalTypes";
 
 import {
@@ -16,7 +17,9 @@ import { publishSandboxPackage } from "./sandbox/publishSandboxPackage";
 
 const app = express();
 
-const PORT = Number(process.env.PORT ?? 3000);
+const PORT = Number(
+  process.env.PORT ?? 3000
+);
 
 async function updateApprovalStatus(
   id: string,
@@ -46,6 +49,102 @@ async function updateApprovalStatus(
   return approvalPackage;
 }
 
+async function updatePublishingStatus(
+  approvalPackage: ApprovalPackage,
+  publishingStatus: PublishingStatus
+): Promise<void> {
+  approvalPackage.publishingStatus =
+    publishingStatus;
+
+  await saveApprovalPackage(
+    approvalPackage
+  );
+}
+
+async function publishInBackground(
+  approvalPackage: ApprovalPackage
+): Promise<void> {
+  try {
+    console.log(
+      `Background publishing started for: ${approvalPackage.id}`
+    );
+
+    const execution =
+      await publishSandboxPackage(
+        approvalPackage
+      );
+
+    const channelStatuses =
+      Object.values(
+        execution.channels
+      ).map(
+        (channel) => channel.status
+      );
+
+    const allSucceeded =
+      channelStatuses.every(
+        (status) => status === "success"
+      );
+
+    const allFailed =
+      channelStatuses.every(
+        (status) => status === "failed"
+      );
+
+    if (allSucceeded) {
+      await updatePublishingStatus(
+        approvalPackage,
+        "published"
+      );
+
+      console.log(
+        `Publishing completed successfully: ${approvalPackage.id}`
+      );
+
+      return;
+    }
+
+    if (allFailed) {
+      await updatePublishingStatus(
+        approvalPackage,
+        "failed"
+      );
+
+      console.error(
+        `All publishing channels failed: ${approvalPackage.id}`
+      );
+
+      return;
+    }
+
+    await updatePublishingStatus(
+      approvalPackage,
+      "partially_failed"
+    );
+
+    console.warn(
+      `Publishing partially failed: ${approvalPackage.id}`
+    );
+  } catch (error) {
+    console.error(
+      "Background publishing failed:",
+      error
+    );
+
+    try {
+      await updatePublishingStatus(
+        approvalPackage,
+        "failed"
+      );
+    } catch (statusError) {
+      console.error(
+        "Could not update publishing status:",
+        statusError
+      );
+    }
+  }
+}
+
 function renderPage(
   title: string,
   message: string
@@ -55,6 +154,12 @@ function renderPage(
     <html>
       <head>
         <meta charset="UTF-8" />
+
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1"
+        />
+
         <title>${title}</title>
       </head>
 
@@ -82,6 +187,7 @@ function renderPage(
   `;
 }
 
+// Simple health/home page
 app.get("/", (_req, res) => {
   res.send(
     renderPage(
@@ -91,75 +197,97 @@ app.get("/", (_req, res) => {
   );
 });
 
-app.get("/approve/:id", async (req, res) => {
-  try {
-    const approvalPackage =
-      await updateApprovalStatus(
-        req.params.id,
-        "approved"
+// Approve
+app.get(
+  "/approve/:id",
+  async (req, res) => {
+    try {
+      const approvalPackage =
+        await updateApprovalStatus(
+          req.params.id,
+          "approved"
+        );
+
+      await updatePublishingStatus(
+        approvalPackage,
+        "publishing"
       );
 
-    await publishSandboxPackage(
-      approvalPackage
-    );
-
-    res.send(
-      renderPage(
-        "Approved",
-        `
-          Barça vs ${approvalPackage.match.opponent}
-          has been approved.
-
-          <br><br>
-
-          Sandbox publishing completed successfully.
-        `
-      )
-    );
-  } catch (error) {
-    console.error(error);
-
-    res.status(400).send(
-      renderPage(
-        "Could not approve",
-        error instanceof Error
-          ? error.message
-          : "Unknown error"
-      )
-    );
-  }
-});
-
-app.get("/reject/:id", async (req, res) => {
-  try {
-    const approvalPackage =
-      await updateApprovalStatus(
-        req.params.id,
-        "rejected"
+      // Do NOT await this.
+      // The approver gets the response immediately.
+      void publishInBackground(
+        approvalPackage
       );
 
-    res.send(
-      renderPage(
-        "Rejected",
-        `Barça vs ${approvalPackage.match.opponent} has been rejected.`
-      )
-    );
-  } catch (error) {
-    console.error(error);
+      res.send(
+        renderPage(
+          "Approved",
+          `
+            Barça vs ${approvalPackage.match.opponent}
+            has been approved.
 
-    res.status(400).send(
-      renderPage(
-        "Could not reject",
-        error instanceof Error
-          ? error.message
-          : "Unknown error"
-      )
+            <br><br>
+
+            Publishing is now in progress.
+          `
+        )
+      );
+    } catch (error) {
+      console.error(error);
+
+      res.status(400).send(
+        renderPage(
+          "Could not approve",
+          error instanceof Error
+            ? error.message
+            : "Unknown error"
+        )
+      );
+    }
+  }
+);
+
+// Reject
+app.get(
+  "/reject/:id",
+  async (req, res) => {
+    try {
+      const approvalPackage =
+        await updateApprovalStatus(
+          req.params.id,
+          "rejected"
+        );
+
+      res.send(
+        renderPage(
+          "Rejected",
+          `
+            Barça vs ${approvalPackage.match.opponent}
+            has been rejected.
+          `
+        )
+      );
+    } catch (error) {
+      console.error(error);
+
+      res.status(400).send(
+        renderPage(
+          "Could not reject",
+          error instanceof Error
+            ? error.message
+            : "Unknown error"
+        )
+      );
+    }
+  }
+);
+
+app.listen(
+  PORT,
+  "0.0.0.0",
+  () => {
+    console.log(
+      `Approval server running on port ${PORT}`
     );
   }
-});
-
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(
-    `Approval server running on port ${PORT}`
-  );
-});
+);
