@@ -18,6 +18,7 @@ export type SandboxExecution = {
   channels: {
     instagram: ChannelExecutionResult;
     email: ChannelExecutionResult;
-    whatsapp: ChannelExecutionResult;
+    // WhatsApp is on hold; only active channels participate in publishing status.
+    // whatsapp: ChannelExecutionResult;
   };
 };

@@ -6,6 +6,16 @@ The goal is to automate match-day communication for FC Barcelona watch parties i
 
 Right now, the agent can fetch the next Barça match, gather local context like weather, events, and transit alerts, generate match-day content, create a poster, send an approval email, and publish approved content to sandbox destinations.
 
+## Channel status
+
+Current development focuses on **Instagram and email**.
+
+The **WhatsApp sandbox implementation was tested successfully**. Production
+WhatsApp integration is on hold until a business phone number/account is available
+for this project. WhatsApp content generation, approval previews, publishing,
+and standalone test scripts are commented out, preserving the implementation
+for later. Publishing status now reflects Instagram and email only.
+
 ## Why I Built This
 
 I’m part of the Barça supporters community in San Francisco, and match-day communication usually involves a lot of small repetitive tasks.
@@ -14,7 +24,7 @@ Things like:
 
 - checking the next Barça match
 - confirming kickoff time
-- writing WhatsApp and Instagram posts
+- writing Instagram posts and email invitations (WhatsApp is currently on hold)
 - creating match-day graphics
 - checking local weather and events
 - sending everything out at the right time

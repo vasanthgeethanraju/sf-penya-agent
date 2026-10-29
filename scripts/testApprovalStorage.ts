@@ -27,7 +27,7 @@ async function main() {
     transitAlerts: [],
 
     content: {
-      whatsapp: "Test WhatsApp",
+      // whatsapp: "Test WhatsApp", // Integration currently on hold.
       instagram: "Test Instagram",
       emailSubject: "Test Email",
       emailBody: "Test body",

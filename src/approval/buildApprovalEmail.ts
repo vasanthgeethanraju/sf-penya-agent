@@ -16,6 +16,12 @@ export function buildApprovalEmail(
   const subject =
     `Approval needed: Barça vs ${approvalPackage.match.opponent}`;
 
+  // WhatsApp approval preview is on hold along with sending:
+  // const whatsappPreview = `
+  //   <h3>WhatsApp</h3>
+  //   <p>${approvalPackage.content.whatsapp}</p>
+  // `;
+
   const html = `
 <!DOCTYPE html>
 <html>
@@ -44,8 +50,7 @@ export function buildApprovalEmail(
         : ""
     }
 
-    <h3>WhatsApp</h3>
-    <p>${approvalPackage.content.whatsapp}</p>
+    <!-- WhatsApp preview is on hold pending production business setup. -->
 
     <h3>Instagram</h3>
     <p>${approvalPackage.content.instagram}</p>

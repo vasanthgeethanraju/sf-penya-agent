@@ -9,7 +9,8 @@ import type {
 
 import { publishSandboxEmail } from "./publishSandboxEmail";
 import { publishSandboxInstagram } from "./publishSandboxInstagram";
-import { publishSandboxWhatsApp } from "./publishSandboxWhatsApp";
+// WhatsApp is on hold pending a production business phone number/account.
+// import { publishSandboxWhatsApp } from "./publishSandboxWhatsApp";
 
 function successResult(): ChannelExecutionResult {
   return {
@@ -46,7 +47,7 @@ export async function publishSandboxPackage(
 
   let instagram: ChannelExecutionResult;
   let email: ChannelExecutionResult;
-  let whatsapp: ChannelExecutionResult;
+  // let whatsapp: ChannelExecutionResult;
 
   // Instagram
   try {
@@ -104,7 +105,7 @@ const result =
     email = failedResult(error);
   }
 
-  // WhatsApp
+  /* WhatsApp sandbox publishing was verified; production integration is on hold.
   try {
     console.log(
       "Sandbox WhatsApp publish..."
@@ -123,6 +124,7 @@ console.log(
   } catch (error) {
     whatsapp = failedResult(error);
   }
+  */
 
   const execution: SandboxExecution = {
     approvalId: approvalPackage.id,
@@ -134,7 +136,7 @@ console.log(
     channels: {
       instagram,
       email,
-      whatsapp,
+      // whatsapp,
     },
   };
 
