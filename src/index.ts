@@ -5,6 +5,7 @@ import { createApprovalPackage } from "./approval/createApprovalPackage";
 import { buildApprovalEmail } from "./approval/buildApprovalEmail";
 import { sendApprovalEmail } from "./email/sendApprovalEmail";
 import { buildPosterConfig } from "./poster/buildPosterConfig";
+import { getRecentMatchContext } from "./poster/recentMatchContext";
 import { buildPosterPrompt } from "./poster/buildPosterPrompt";
 import { generatePosterImage } from "./poster/generatePosterImage";
 import { uploadPoster } from "./storage/uploadPoster";
@@ -36,8 +37,13 @@ async function main() {
     try {
       console.log("Generating poster...");
 
+      const recentMatchContext = await getRecentMatchContext(match);
+
       const posterConfig =
-        buildPosterConfig(match);
+        buildPosterConfig(
+          match,
+          recentMatchContext?.standoutPlayers ?? []
+        );
 
       const posterPrompt =
         buildPosterPrompt(

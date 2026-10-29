@@ -1,48 +1,18 @@
 import type { MatchInfo, PosterConfig } from "../types";
-
-const barcelonaPlayers = [
-  "Lamine Yamal",
-  "Raphinha",
-  "Pedri",
-  "Fermin Lopez",
-  "Pau Cubarsi",
-];
-
-function pickRandomPlayers(players: string[], count: number) {
-  return [...players]
-    .sort(() => Math.random() - 0.5)
-    .slice(0, count);
-}
+import { getPosterContext } from "./getPosterContext";
 
 export function buildPosterConfig(
-  match: MatchInfo
+  match: MatchInfo,
+  recentStandouts: string[] = []
 ): PosterConfig {
-  const isElClasico =
-    match.opponent.toLowerCase() === "real madrid";
-
-  if (isElClasico) {
-    return {
-      featuredBarcelonaPlayers: pickRandomPlayers(
-        barcelonaPlayers,
-        1
-      ),
-      featuredOpponentPlayers: ["Kylian Mbappe"],
-      includeGoldenGateBridge: true,
-      includePenyaLogo: true,
-      includeBarcaLogo: true,
-      style: "el-clasico",
-    };
-  }
+  const context = getPosterContext(match, recentStandouts);
 
   return {
-    featuredBarcelonaPlayers: pickRandomPlayers(
-      barcelonaPlayers,
-      2
-    ),
-    featuredOpponentPlayers: [],
+    ...context,
+    // The poster currently treats Champions League games as big matches.
+    style: context.style === "champions-league" ? "big-match" : context.style,
     includeGoldenGateBridge: true,
     includePenyaLogo: true,
     includeBarcaLogo: true,
-    style: "standard",
   };
 }

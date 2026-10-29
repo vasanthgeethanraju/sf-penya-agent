@@ -26,10 +26,10 @@ export type WeatherContext = {
 export type EventContext = {
   id: string;
   name: string;
-  date: string;
-  time: string;
-  venue: string;
-  city: string;
+  date: string | null;
+  time: string | null;
+  venue: string | null;
+  city: string | null;
 };
 
 export type ApprovalPackage = {

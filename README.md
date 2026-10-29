@@ -41,3 +41,49 @@ Send approval email
 Human approves
         ↓
 Publish to sandbox channels
+```
+
+## Automatic poster context
+
+The poster flow now fetches recent-match context automatically:
+
+```text
+Next fixture
+    → official results page: latest completed Barça match
+    → official match page: Barça goalscorers
+    → recent-match context snapshot
+    → player selection
+    → poster prompt
+```
+
+`src/providers/barcaOfficialResults.ts` reads the public official pages with
+Cheerio. `src/poster/recentMatchContext.ts` turns that data into the poster's
+context object and saves `data/recent-match-context.json` for inspection.
+Every run fetches fresh data; the saved snapshot is not reused if retrieval fails.
+
+The first selection rule prioritizes goalscorers by goal count. It does not use
+assists or overall performance ratings yet. Unfilled player slots use the
+existing fallback pools; El Clasico keeps the Yamal–Mbappe pairing. If recent
+context is unavailable, the program logs a warning and uses normal selection.
+
+This reuses the project's existing official-site scraping approach without
+requiring another API key or an LLM call. It depends on the website's markup;
+a documented sports-data API is an option for a future provider replacement.
+Recent player photographs and current-kit references are a separate next step.
+
+Check the parser offline, then inspect live context:
+
+```sh
+node --import tsx scripts/testRecentMatchParsing.ts
+node --import tsx scripts/testRecentMatchContext.ts
+```
+
+Check the poster prompt with live data:
+
+```sh
+node --import tsx scripts/testPosterGeneration.ts
+```
+
+These commands do not call OpenAI. Adding `--generate` to the last command
+makes a paid image-generation request and saves a local poster. The poster
+test does not run the full agent, upload files, or send email.
